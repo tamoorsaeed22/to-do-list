@@ -55,9 +55,9 @@ class Store {
     let todos = Store.getTodos();
     todos = todos.filter((todo) => todo.id !== id);
 
-    //Update index values for remaining list items
+    // Update index values for remaining list items
     todos.forEach((todo, index) => {
-        todos.index = index + 1;
+      todos.index = index + 1;
     });
 
     localStorage.setItem('todos', JSON.stringify(todos));
