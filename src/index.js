@@ -26,9 +26,10 @@ class UI {
     content = '';
   };
 
-  static generateId = () => Math.floor((1 + Math.random()) * 0x10000)
-    .toString(16)
-    .substring(1);
+  static generateId = (length) => {
+    const index = length + 1;
+    return index.toString();
+  }
 
   static clearValue = () => {
     document.querySelector('.input').value = '';
@@ -53,6 +54,12 @@ class Store {
   static removeTodo = (id) => {
     let todos = Store.getTodos();
     todos = todos.filter((todo) => todo.id !== id);
+
+    //Update index values for remaining list items
+    todos.forEach((todo, index) => {
+        todos.index = index + 1;
+    });
+
     localStorage.setItem('todos', JSON.stringify(todos));
     UI.displayTodos(todos);
   };
