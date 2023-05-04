@@ -1,141 +1,60 @@
 import './style.css';
+import {
+  addTask,
+  editTask,
+  removeAllCompleted,
+} from './task.js';
+import changeStatus from './storage.js';
 
-const taskList = document.getElementById('task-list');
-const newTask = document.getElementById('new-task');
-const form = document.querySelector('form');
+const list = document.getElementById('list');
+const refresh = document.getElementById('refresh');
+const addIcon = document.getElementById('addIcon');
+const text = document.getElementById('text');
+const removeAll = document.getElementById('removeAll');
+const tasks = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks')) : [];
 
-let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-
-let editTaskDescription;
-let deleteTask;
-
-const saveTasks = () => {
-  localStorage.setItem('tasks', JSON.stringify(tasks));
-};
-
-const createTaskLists = (task) => {
-  const deleteButton = document.createElement('button');
-  const listItemElement = document.createElement('li');
-  const iconElement = document.createElement('i');
-  const descriptionElement = document.createElement('span');
-
-  const checkboxElement = document.createElement('input');
-  checkboxElement.type = 'checkbox';
-  checkboxElement.checked = task.completed;
-
-  checkboxElement.addEventListener('change', () => {
-    task.completed = checkboxElement.checked;
-    saveTasks();
-
-    // Check if the checkbox is now checked
-    if (checkboxElement.checked) {
-      deleteButton.style.display = 'block';
-      iconElement.style.display = 'none';
-      listItemElement.style.display = 'flex';
-      listItemElement.style.justifyContent = 'flex-start';
-      deleteButton.style.marginLeft = 'auto';
-    } else {
-      deleteButton.style.display = 'none';
-      iconElement.style.display = 'block';
-      descriptionElement.style.color = '#999';
-    }
-  });
-
-  descriptionElement.textContent = task.description;
-
-  descriptionElement.addEventListener('click', () => {
-    editTaskDescription(task);
-  });
-
-  listItemElement.appendChild(checkboxElement);
-  listItemElement.appendChild(descriptionElement);
-
-  iconElement.classList.add('uil', 'uil-ellipsis-v');
-  iconElement.addEventListener('click', () => {
-    editTaskDescription(task);
-  });
-  listItemElement.appendChild(iconElement);
-
-  deleteButton.innerHTML = '<i class="uil uil-trash"></i>';
-  deleteButton.classList.add('delete-button');
-  deleteButton.style.display = 'none';
-
-  deleteButton.addEventListener('click', () => {
-    deleteTask(task.index);
-  });
-
-  listItemElement.appendChild(deleteButton);
-
-  return listItemElement;
-};
-
-const updateTaskIndexes = () => {
-  tasks.forEach((task, index) => {
-    task.index = index;
-  });
-};
-
-const renderTaskList = () => {
-  taskList.innerHTML = '';
-
-  tasks
-    .sort((task1, task2) => task1.index - task2.index)
-    .forEach((task) => {
-      const listItemElement = createTaskLists(task);
-      taskList.appendChild(listItemElement);
-    });
-};
-
-deleteTask = (index) => {
-  tasks = tasks.filter((task) => task.index !== index);
-  updateTaskIndexes();
-  saveTasks();
-  renderTaskList();
-};
-
-editTaskDescription = (task) => {
-  const inputElement = document.createElement('input');
-  inputElement.type = 'text';
-  inputElement.value = task.description;
-  inputElement.classList.add('edit-input');
-
-  inputElement.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      task.description = inputElement.value.trim();
-      saveTasks();
-      renderTaskList();
-    } else if (event.key === 'Escape') {
-      renderTaskList();
-    }
-  });
-
-  const listItemElement = taskList.children[task.index];
-  listItemElement.replaceChild(inputElement, listItemElement.children[1]);
-  inputElement.select();
-};
-
-function addNewTask(description) {
-  const taskIndex = tasks.length;
-
-  const task = { description, completed: false, index: taskIndex };
-  tasks.push(task);
-  saveTasks();
-
-  const listItemElement = createTaskLists(task);
-  taskList.appendChild(listItemElement);
-}
-
-form.addEventListener('submit', (event) => {
-  event.preventDefault();
-
-  const taskDescription = newTask.value;
-  if (taskDescription.trim() === '') {
-    return;
-  }
-
-  addNewTask(taskDescription);
-  newTask.value = '';
+refresh.addEventListener('click', () => {
+  document.location.reload();
 });
 
-renderTaskList();
-window.addEventListener('load', renderTaskList);
+addIcon.addEventListener('click', () => {
+  const desc = text.value;
+  addTask(desc);
+});
+
+removeAll.addEventListener('click', () => {
+  removeAllCompleted();
+});
+
+tasks.forEach((task) => {
+  const listItem = document.createElement('li');
+  listItem.classList.add('listItem');
+  listItem.setAttribute('id', task.index);
+
+  const check = document.createElement('input');
+  check.setAttribute('type', 'checkbox');
+  check.classList.add('check');
+  check.addEventListener('change', () => {
+    changeStatus(task.index);
+  });
+
+  const todo = document.createElement('p');
+  todo.classList.add('todo');
+  todo.innerText = task.desc;
+  if (task.completed) {
+    todo.style.textDecoration = 'line-through';
+    todo.style.color = '#999';
+    check.checked = true;
+  }
+
+  const listItemIcon = document.createElement('i');
+  listItemIcon.classList.add('listItemIcon');
+  listItemIcon.classList.add('fas');
+  listItemIcon.classList.add('fa-ellipsis-v');
+  listItemIcon.addEventListener('click', () => {
+    editTask(task.index);
+  });
+
+  listItem.append(check, todo, listItemIcon);
+  list.append(listItem);
+});
