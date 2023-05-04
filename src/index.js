@@ -1,83 +1,141 @@
 import './style.css';
 
-class Todo {
-  constructor(desc, completed, id) {
-    this.desc = desc;
-    this.completed = completed;
-    this.id = id;
-  }
-}
-class UI {
-  static displayTodos = (todos) => {
-    const ul = document.querySelector('ul');
-    if (!todos.length) ul.innerHTML = '';
-    let content = '';
-    todos.forEach((tod) => {
-      content += `
-        <li id=${tod.id} class="item">
-          <div class='group'>
-            <input class='bdan' name='checkbox' type="checkbox" />
-            <p contenteditable="true">${tod.desc}</p>
-          </div>
-          <i class="fa-solid fa-trash"></i>
-        </li>`;
+const taskList = document.getElementById('task-list');
+const newTask = document.getElementById('new-task');
+const form = document.querySelector('form');
+
+let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+let editTaskDescription;
+let deleteTask;
+
+const saveTasks = () => {
+  localStorage.setItem('tasks', JSON.stringify(tasks));
+};
+
+const createTaskLists = (task) => {
+  const deleteButton = document.createElement('button');
+  const listItemElement = document.createElement('li');
+  const iconElement = document.createElement('i');
+  const descriptionElement = document.createElement('span');
+
+  const checkboxElement = document.createElement('input');
+  checkboxElement.type = 'checkbox';
+  checkboxElement.checked = task.completed;
+
+  checkboxElement.addEventListener('change', () => {
+    task.completed = checkboxElement.checked;
+    saveTasks();
+
+    // Check if the checkbox is now checked
+    if (checkboxElement.checked) {
+      deleteButton.style.display = 'block';
+      iconElement.style.display = 'none';
+      listItemElement.style.display = 'flex';
+      listItemElement.style.justifyContent = 'flex-start';
+      deleteButton.style.marginLeft = 'auto';
+    } else {
+      deleteButton.style.display = 'none';
+      iconElement.style.display = 'block';
+      descriptionElement.style.color = '#999';
+    }
+  });
+
+  descriptionElement.textContent = task.description;
+
+  descriptionElement.addEventListener('click', () => {
+    editTaskDescription(task);
+  });
+
+  listItemElement.appendChild(checkboxElement);
+  listItemElement.appendChild(descriptionElement);
+
+  iconElement.classList.add('uil', 'uil-ellipsis-v');
+  iconElement.addEventListener('click', () => {
+    editTaskDescription(task);
+  });
+  listItemElement.appendChild(iconElement);
+
+  deleteButton.innerHTML = '<i class="uil uil-trash"></i>';
+  deleteButton.classList.add('delete-button');
+  deleteButton.style.display = 'none';
+
+  deleteButton.addEventListener('click', () => {
+    deleteTask(task.index);
+  });
+
+  listItemElement.appendChild(deleteButton);
+
+  return listItemElement;
+};
+
+const updateTaskIndexes = () => {
+  tasks.forEach((task, index) => {
+    task.index = index;
+  });
+};
+
+const renderTaskList = () => {
+  taskList.innerHTML = '';
+
+  tasks
+    .sort((task1, task2) => task1.index - task2.index)
+    .forEach((task) => {
+      const listItemElement = createTaskLists(task);
+      taskList.appendChild(listItemElement);
     });
-    ul.innerHTML = content;
-    content = '';
-  };
+};
 
-  static generateId = (length) => {
-    const index = length + 1;
-    return index.toString();
+deleteTask = (index) => {
+  tasks = tasks.filter((task) => task.index !== index);
+  updateTaskIndexes();
+  saveTasks();
+  renderTaskList();
+};
+
+editTaskDescription = (task) => {
+  const inputElement = document.createElement('input');
+  inputElement.type = 'text';
+  inputElement.value = task.description;
+  inputElement.classList.add('edit-input');
+
+  inputElement.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      task.description = inputElement.value.trim();
+      saveTasks();
+      renderTaskList();
+    } else if (event.key === 'Escape') {
+      renderTaskList();
+    }
+  });
+
+  const listItemElement = taskList.children[task.index];
+  listItemElement.replaceChild(inputElement, listItemElement.children[1]);
+  inputElement.select();
+};
+
+function addNewTask(description) {
+  const taskIndex = tasks.length;
+
+  const task = { description, completed: false, index: taskIndex };
+  tasks.push(task);
+  saveTasks();
+
+  const listItemElement = createTaskLists(task);
+  taskList.appendChild(listItemElement);
+}
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  const taskDescription = newTask.value;
+  if (taskDescription.trim() === '') {
+    return;
   }
 
-  static clearValue = () => {
-    document.querySelector('.input').value = '';
-  };
-}
-
-class Store {
-  static getTodos = () => {
-    let todos;
-    if (!localStorage.getItem('todos')) todos = [];
-    else todos = JSON.parse(localStorage.getItem('todos'));
-    return todos;
-  };
-
-  static addTodo = (todo) => {
-    const todos = Store.getTodos();
-    todos.push(todo);
-    localStorage.setItem('todos', JSON.stringify(todos));
-    UI.displayTodos(todos);
-  };
-
-  static removeTodo = (id) => {
-    let todos = Store.getTodos();
-    todos = todos.filter((todo) => todo.id !== id);
-
-    // Update index values for remaining list items
-    todos.forEach((todo, index) => {
-      todos.index = index + 1;
-    });
-
-    localStorage.setItem('todos', JSON.stringify(todos));
-    UI.displayTodos(todos);
-  };
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const todos = Store.getTodos();
-  UI.displayTodos(todos);
+  addNewTask(taskDescription);
+  newTask.value = '';
 });
 
-document.querySelector('.fa-turn-down').addEventListener('click', () => {
-  const input = document.querySelector('.input').value;
-  const newTodo = new Todo(input, false, UI.generateId());
-  Store.addTodo(newTodo);
-  UI.clearValue();
-});
-
-document.querySelector('.list').addEventListener('click', (e) => {
-  const { id } = e.target.parentElement;
-  if (e.target.classList.contains('fa-trash')) Store.removeTodo(id);
-});
+renderTaskList();
+window.addEventListener('load', renderTaskList);
