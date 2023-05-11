@@ -1,60 +1,32 @@
+/* eslint-disable no-alert */
+/* eslint-disable no-unused-vars */
+// eslint-disable-next-line import/no-extraneous-dependencies
+import _ from 'lodash';
+import checkStrikeAndEdit from './checkStrikeAndEdit.js';
+import { form, input } from './selectors.js';
+import Store from './storage.js';
 import './style.css';
-import {
-  addTask,
-  editTask,
-  removeAllCompleted,
-} from './task.js';
-import changeStatus from './storage.js';
+import Todo from './todo.js';
 
-const list = document.getElementById('list');
-const refresh = document.getElementById('refresh');
-const addIcon = document.getElementById('addIcon');
-const text = document.getElementById('text');
-const removeAll = document.getElementById('removeAll');
-const tasks = localStorage.getItem('tasks') ? JSON.parse(localStorage.getItem('tasks')) : [];
-
-refresh.addEventListener('click', () => {
-  document.location.reload();
-});
-
-addIcon.addEventListener('click', () => {
-  const desc = text.value;
-  addTask(desc);
-});
-
-removeAll.addEventListener('click', () => {
-  removeAllCompleted();
-});
-
-tasks.forEach((task) => {
-  const listItem = document.createElement('li');
-  listItem.classList.add('listItem');
-  listItem.setAttribute('id', task.index);
-
-  const check = document.createElement('input');
-  check.setAttribute('type', 'checkbox');
-  check.classList.add('check');
-  check.addEventListener('change', () => {
-    changeStatus(task.index);
-  });
-
-  const todo = document.createElement('p');
-  todo.classList.add('todo');
-  todo.innerText = task.desc;
-  if (task.completed) {
-    todo.style.textDecoration = 'line-through';
-    todo.style.color = '#999';
-    check.checked = true;
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const index = Store.getTask().length + 1;
+  const inputText = input.value;
+  const completed = false;
+  if (inputText === '') {
+    return;
   }
+  // instatiate the Todo
+  const todo = new Todo(inputText, completed, index);
 
-  const listItemIcon = document.createElement('i');
-  listItemIcon.classList.add('listItemIcon');
-  listItemIcon.classList.add('fas');
-  listItemIcon.classList.add('fa-ellipsis-v');
-  listItemIcon.addEventListener('click', () => {
-    editTask(task.index);
-  });
-
-  listItem.append(check, todo, listItemIcon);
-  list.append(listItem);
+  // add Task to UI
+  Store.addTask(todo);
+  input.value = '';
 });
+
+// event for checked and strike and edit
+document.querySelector('.task-list').addEventListener('click', (e) => {
+  checkStrikeAndEdit(e);
+});
+
+Store.displayTasks();

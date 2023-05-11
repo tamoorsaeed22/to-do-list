@@ -1,32 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://kit.fontawesome.com/105bcdf182.js" crossorigin="anonymous"></script>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://unicons.iconscout.com/release/v4.0.8/css/line.css" rel="stylesheet">
-    <title>ToDo List</title>
-</head>
-<body id="body">
-    <div class="mainContainer">
-        <div class="listHeader">
-            <div class="listHeaderTop">
-                <p class="listHeaderText">Today's ToDo</p>
-                <i id="refresh" class="fas fa-sync"></i>
-            </div>
-            <div class="listHeaderBottom">
-                <input id="text" type="text" class="text" placeholder="Add to your list...">
-                <i id="addIcon" class="fas fa-plus addIcon"></i>
-            </div>
-        </div>
-        <ul class="list" id="list">
-        </ul>
-        <div class="listFooter">
-            <p id="removeAll" class="clear">
-                Clear All Completed!
-            </p>
-        </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      src="https://kit.fontawesome.com/a70cf7601d.js"
+      crossorigin="anonymous"
+    ></script>
+    <title>To Do List</title>
+  </head>
+
+  <div class="container">
+    <h1>My Todo List </h1>
+    <div class="refresh">
+        <p>Today's ToDo</p>
+        <i class="fas fa-sync-alt"></i>
+        <span class="count">∞</span>
     </div>
-</body>
+    <form>
+        <input type="text" name="todo-input" id="todo-input" placeholder="Type in your task here">
+        <button type="submit" id="task-submit"><i class="fas fa-level-down-alt rotate"></i></button>
+    </form>
+    <ul class="task-list">
+     
+    </ul>
+    <button type="button" class="clear-button">Clear all completed!</button>
+</div>
 </html>
